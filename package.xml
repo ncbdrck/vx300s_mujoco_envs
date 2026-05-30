@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>vx300s_mujoco_reach</name>
+  <version>0.0.1</version>
+  <description>
+    Standalone test package: ViperX-300 S reach task on the MuJoCo backend
+    (mujoco_ros_pkgs), validating the MultiROS MuJoCo backend end-to-end without
+    modifying rl_environments. Gazebo VX300S reach is mirrored on MuJoCo.
+  </description>
+  <maintainer email="ncbdrck@gmail.com">ncbdrck</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- rospy is find_package()-ed in CMakeLists and re-exported via catkin_package, -->
+  <!-- so it must be a full build+exec dependency (catkin enforces this at configure time). -->
+  <depend>rospy</depend>
+
+  <!-- Workspace packages providing the backend, robot description and RL configs. -->
+  <!-- Declared so catkin orders them before this package in the build graph. -->
+  <exec_depend>multiros</exec_depend>
+  <exec_depend>viperx300s_description</exec_depend>
+  <exec_depend>rl_environments</exec_depend>
+
+  <!-- Runtime ROS message / TF / kinematics packages used by the env code and launch. -->
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>effort_controllers</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+
+  <!-- Source-built / Python-only packages resolved from the workspace, not rosdep: -->
+  <!-- mujoco_ros_pkgs (mujoco_ros, mujoco_ros_msgs, mujoco_ros_control), -->
+  <!-- rl_training_validation, sb3_ros_support, uniros. -->
+  <!-- Same rationale as multiros: not available through rosdep. -->
+
+  <export>
+  </export>
+</package>

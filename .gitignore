@@ -1,0 +1,19 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Training artifacts (generated at run time — models, checkpoints, replay buffers)
+models/
+
+# Logs: TensorBoard event files, CSV progress, and W&B run data
+logs/
+wandb/
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store

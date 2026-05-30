@@ -1,0 +1,14 @@
+# mujoco_ros plugin configuration: load the ros_control bridge for the VX300S.
+#
+# mujoco_ros scans /MujocoPlugins for plugin configs. robot_namespace is read at the top level
+# of the plugin entry (the controller_manager lives at /vx300s/controller_manager); the hardware
+# struct carries the RobotHWSim type, the control period, and the robot_description param name.
+MujocoPlugins:
+  - type: mujoco_ros_control/MujocoRosControlPlugin
+    robot_namespace: vx300s
+    hardware:
+      type: mujoco_ros_control/DefaultRobotHWSim
+      # Match the MJCF <option timestep> (0.002 s) so control runs once per sim step
+      # (a smaller value only triggers the "faster than simulation timestep" warning).
+      control_period: 0.002
+      robot_description: robot_description

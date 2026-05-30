@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""
+Train an SB3 SAC policy on the VX300S MuJoCo reach task.
+
+Standard env id: ``VX300SMujocoReacherSim-v0``
+
+Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and trains:
+    rosrun vx300s_mujoco_reach vx300s_mujoco_reach_train.py
+Pass --attach to instead connect to a stack started with the package launch file.
+
+By default the environment self-launches its own MuJoCo server + controllers (one command);
+pass --attach to instead connect to a stack started with the package launch file.
+The SAC hyper-parameters are reused from rl_training_validation's vx300s_reacher_sac.yaml.
+Models and logs are written under this package.
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+
+import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
+
+# Trigger env registration.
+from vx300s_mujoco_reach.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
+
+from sb3_ros_support.sac import SAC
+
+from multiros.wrappers.normalize_action_wrapper import NormalizeActionWrapper
+from multiros.wrappers.normalize_obs_wrapper import NormalizeObservationWrapper
+from multiros.wrappers.time_limit_wrapper import TimeLimitWrapper
+
+
+ENV_ID = "VX300SMujocoReacherSim-v0"
+
+# SAC hyper-parameters reused from the existing rl_training_validation config.
+# (SAC tends to converge faster than TD3 on this reach task.)
+CONFIG_PKG = "rl_training_validation"
+CONFIG_FILE = "vx300s_reacher_sac.yaml"
+
+# Paths are relative to this package (model_pkg_path below).
+PKG = "vx300s_mujoco_reach"
+SAVE_PATH = "/models/sim/sac/vx300s/reach/"
+LOG_PATH = "/logs/sim/sac/vx300s/reach/"
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--attach", action="store_true",
+                   help="Attach to a simulation already started with the package launch file "
+                        "instead of letting the env launch its own MuJoCo server + roscore. "
+                        "By default the env self-launches everything (one-command workflow).")
+    p.add_argument("--no-realtime", action="store_true",
+                   help="Use the paused MDP loop instead of the real-time (paper section 7) loop.")
+    p.add_argument("--fast", action="store_true",
+                   help="Deterministic-step mode: advance the sim with the MuJoCo step action "
+                        "(no wall-clock sleep) so training runs as fast as the CPU allows. Implies "
+                        "non-real-time. Use --fast-steps to set how many physics ticks per env step.")
+    p.add_argument("--fast-steps", type=int, default=50,
+                   help="Physics steps advanced per env step in --fast mode. Should cover the "
+                        "trajectory duration (action_speed / MJCF timestep); tune on first run.")
+    p.add_argument("--mujoco-gui", action="store_true",
+                   help="Show the MuJoCo viewer (only when self-launching, i.e. without --attach).")
+    p.add_argument("--steps", type=int, default=None,
+                   help="Override the training step count from the YAML config. Use a small value "
+                        "(e.g. 2000) for a quick plumbing smoke test; omit for the config default.")
+    p.add_argument("--seed", type=int, default=10)
+    p.add_argument("--max-episode-steps", type=int, default=100)
+    p.add_argument("--environment-loop-rate", type=float, default=10.0)
+    p.add_argument("--action-cycle-time", type=float, default=0.5)
+    p.add_argument("--reward-type", default="Dense")
+    return p.parse_args()
+
+
+def build_env(args: argparse.Namespace):
+    # --fast selects the deterministic MuJoCo step path: non-real-time, sim_step_mode 2,
+    # num_mujoco_steps physics ticks per env step, and no wall-clock sleep (action_cycle_time 0).
+    if args.fast:
+        realtime_mode = False
+        sim_step_mode = 2
+        num_mujoco_steps = args.fast_steps
+        action_cycle_time = 0.0
+    else:
+        realtime_mode = not args.no_realtime
+        sim_step_mode = 1
+        num_mujoco_steps = 1
+        action_cycle_time = args.action_cycle_time
+
+    env_kwargs = dict(
+        seed=args.seed,
+        realtime_mode=realtime_mode,
+        sim_step_mode=sim_step_mode,
+        num_mujoco_steps=num_mujoco_steps,
+        delta_action=True,
+        environment_loop_rate=args.environment_loop_rate,
+        action_cycle_time=action_cycle_time,
+        action_speed=0.100,
+        reward_type=args.reward_type,
+        log_internal_state=False,
+    )
+    if args.attach:
+        env_kwargs.update(launch_mujoco=False, new_roscore=False, load_robot=False)
+    else:
+        env_kwargs.update(launch_mujoco=True, new_roscore=True, load_robot=True,
+                          mujoco_gui=args.mujoco_gui)
+
+    env = gym.make(ENV_ID, **env_kwargs)
+    env = NormalizeActionWrapper(env)
+    env = NormalizeObservationWrapper(env)
+    env = TimeLimitWrapper(env, max_episode_steps=args.max_episode_steps)
+    return env
+
+
+def main() -> int:
+    args = parse_args()
+    env = build_env(args)
+    env.reset()
+
+    model = SAC(env, SAVE_PATH, LOG_PATH, model_pkg_path=PKG,
+                config_file_pkg=CONFIG_PKG, config_filename=CONFIG_FILE,
+                seed=args.seed)
+    # Optional CLI override of the YAML training_steps (e.g. a short smoke run).
+    # core.train() reads the count from parm_dict["training_steps"] at train time.
+    if args.steps is not None:
+        model.parm_dict["training_steps"] = args.steps
+    model.train()
+    model.save_model()
+    model.close_env()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

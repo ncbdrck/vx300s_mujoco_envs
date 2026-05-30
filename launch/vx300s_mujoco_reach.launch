@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  Bring up the ViperX-300 S in the MuJoCo backend for the reach task.
+
+  Order matters: the robot description must be on the parameter server before the mujoco_ros
+  node loads the ros_control plugin (its hardware interface blocks until robot_description is
+  available). This launch therefore loads the URDF first, then starts the mujoco_ros server with
+  the ros_control plugin config, then spawns the controllers.
+
+  Run the RL env in attach mode against this stack:
+    env = uniros.make("VX300SMujocoReacherSim-v0", launch_mujoco=False, new_roscore=False,
+                      load_robot=False)
+-->
+<launch>
+
+  <arg name="gui"          default="true"  doc="Show the MuJoCo viewer." />
+  <arg name="use_sim_time" default="true" />
+
+  <!-- Robot description for the vx300s arm (namespaced). The manufacturer xacro is reused as-is; -->
+  <!-- the multiros helper strips the gripper/finger transmissions (absent from the MJCF) so the -->
+  <!-- mujoco_ros_control plugin only claims the 6 arm joints. Same behaviour as the self-launch -->
+  <!-- path (which passes controlled_joints to the backend). -->
+  <group ns="vx300s">
+    <param name="robot_description"
+           command="$(find multiros)/scripts/mujoco_filtered_description.py $(find viperx300s_description)/urdf/vx300s.urdf.xacro --keep waist shoulder elbow forearm_roll wrist_angle wrist_rotate" />
+
+    <!-- Controller configuration for the MuJoCo backend. -->
+    <rosparam file="$(find vx300s_mujoco_reach)/config/vx300s_mujoco_control.yaml" command="load" />
+
+    <!-- Publish TF from joint states. -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+    <!-- Spawn the controllers once the hardware interface is up. Reach controls only the arm; -->
+    <!-- the gripper is unused, so no gripper controller is spawned. -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" output="screen"
+          args="joint_state_controller arm_controller" />
+  </group>
+
+  <!-- ros_control plugin config consumed by mujoco_ros (scanned under /MujocoPlugins). -->
+  <rosparam file="$(find vx300s_mujoco_reach)/config/vx300s_mujoco_plugins.yaml" command="load" />
+
+  <!-- Start the MuJoCo server with the reach scene + the initial joint states. -->
+  <include file="$(find mujoco_ros)/launch/launch_server.launch">
+    <arg name="use_sim_time"         value="$(arg use_sim_time)" />
+    <arg name="unpause"              value="true" />
+    <arg name="headless"            value="$(eval not arg('gui'))" />
+    <arg name="modelfile"           value="$(find vx300s_mujoco_reach)/assets/vx300s_mjcf/vx300s_scene.xml" />
+    <arg name="initial_joint_states" value="$(find vx300s_mujoco_reach)/config/initial_joint_states.yaml" />
+  </include>
+
+</launch>
