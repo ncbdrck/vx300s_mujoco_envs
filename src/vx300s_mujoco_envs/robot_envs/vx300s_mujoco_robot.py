@@ -43,9 +43,19 @@ class VX300SMujocoRobotEnv(MujocoBaseEnv.MujocoBaseEnv):
         /vx300s/gripper_controller/command : gripper joint trajectory commands.
     """
 
+    # Default (arm-only) controller + joint sets, used by reach and push. Tasks that also drive the
+    # gripper (e.g. pick-and-place) pass the gripper-enabled variants below.
+    ARM_CONTROLLERS = ["joint_state_controller", "arm_controller"]
+    ARM_JOINTS = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wrist_rotate"]
+    ARM_GRIPPER_CONTROLLERS = ["joint_state_controller", "arm_controller", "gripper_controller"]
+    ARM_GRIPPER_JOINTS = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle",
+                          "wrist_rotate", "left_finger", "right_finger"]
+
     def __init__(self, ros_port: str = None, mujoco_pid=None, server_name: str = "mujoco_server",
                  seed: int = None, real_time: bool = False, action_cycle_time: float = 0.0,
-                 load_robot: bool = True, sim_step_mode: int = 1, num_mujoco_steps: int = 1):
+                 load_robot: bool = True, sim_step_mode: int = 1, num_mujoco_steps: int = 1,
+                 controllers_file: str = "vx300s_mujoco_control.yaml",
+                 controllers_list: list = None, controlled_joints: list = None):
 
         rospy.loginfo("Start Init VX300SMujocoRobotEnv")
 
@@ -83,15 +93,16 @@ class VX300SMujocoRobotEnv(MujocoBaseEnv.MujocoBaseEnv):
         robot_state_publisher_max_freq = None
         new_robot_state_term = False
 
-        controllers_file = "vx300s_mujoco_control.yaml"
-        # Reach controls only the arm; the gripper is unused so no gripper controller is spawned.
-        controllers_list = ["joint_state_controller", "arm_controller"]
+        # Controllers + driven joints are chosen by the task env. Reach/push leave these None and
+        # get the arm-only defaults (no gripper controller spawned); pick-and-place passes the
+        # gripper-enabled sets so left_finger/right_finger are driven too. The backend keeps only
+        # the controlled joints' URDF transmissions and strips the rest (mujoco_ros_control would
+        # otherwise abort on a transmission whose joint is absent from the MJCF).
         controller_package_name = "vx300s_mujoco_envs"
-
-        # Only the 6 arm joints have a counterpart in the MJCF. The backend keeps just these
-        # transmissions in robot_description and strips the gripper/finger ones (which would
-        # otherwise abort mujoco_ros_control).
-        controlled_joints = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wrist_rotate"]
+        if controllers_list is None:
+            controllers_list = self.ARM_CONTROLLERS
+        if controlled_joints is None:
+            controlled_joints = self.ARM_JOINTS
 
         reset_controllers = False
         reset_mode = "world"

@@ -13,6 +13,7 @@ setup_args = generate_distutils_setup(
         'vx300s_mujoco_envs.task_envs',
         'vx300s_mujoco_envs.task_envs.reach',
         'vx300s_mujoco_envs.task_envs.push',
+        'vx300s_mujoco_envs.task_envs.pnp',
     ],
     package_dir={'': 'src'},
 )

@@ -1,0 +1,63 @@
+# VX300S Pick-and-Place Task Configuration
+#
+# Parameters for the VX300S MuJoCo pick-and-place task env. Loaded onto the ROS parameter server
+# under the /vx300s namespace at construction. The arm must grasp a cube on the table and move it
+# to a 3D goal above the surface (so it has to pick AND place/lift).
+#
+# Coordinate notes (sized to the shared MuJoCo table, NOT the Gazebo numbers):
+#   * The arm base is at the world origin; the table top is at z = 0; the cube (0.04 side) rests
+#     with its centre at z = 0.02. The table top spans x in [-0.30, 0.70], y in [-0.40, 0.40].
+#   * The gripper is one scalar action mapped to the left_finger position; the right finger mirrors
+#     it (right = -left). Finger range from the MJCF: left_finger 0.021 (closed) .. 0.057 (open).
+
+# YAML Document starts with ---
+# Comments start with #
+---
+  vx300s:
+    # arm joint limits (for the action space) - in radians
+    min_joint_pos: [-3.14, -1.85, -1.76, -3.14, -1.87, -3.14]
+    max_joint_pos: [3.14, 1.26, 1.61, 3.14, 2.23, 3.14]
+
+    # gripper command scalar (mapped to the left_finger prismatic position, metres).
+    # 0.021 = closed, 0.057 = open. The right finger is driven to the negative of this.
+    gripper_min: 0.021
+    gripper_max: 0.057
+
+    # end-effector position bounds (for the observation space)
+    position_ee_max: { x: 0.85, y: 0.85, z: 0.85 }
+    position_ee_min: { x: -0.85, y: -0.85, z: -0.85 }
+
+    # the maximum distance between two points in the workspace (for observation space)
+    max_distance: 2.0
+
+    # cube OBSERVATION bounds (covers spawn + lifted goal + overshoot). z reaches above the table
+    # since the cube is lifted during a successful place.
+    position_cube_max: { x: 0.75, y: 0.40, z: 0.40 }
+    position_cube_min: { x: 0.00, y: -0.40, z: 0.00 }
+
+    # cube SPAWN region (reset each episode), on the table near the arm and well within reach
+    cube_spawn_max: { x: 0.40, y: 0.20, z: 0.02 }
+    cube_spawn_min: { x: 0.25, y: -0.20, z: 0.02 }
+
+    # cube position relative to the end effector (for observation space bounds)
+    cube_rel_to_ee_max: { x: 1.0, y: 1.0, z: 1.0 }
+    cube_rel_to_ee_min: { x: -1.0, y: -1.0, z: -1.0 }
+
+    # the 3D goal the cube must be moved to (above the table -> requires a grasp + lift)
+    position_goal_max: { x: 0.50, y: 0.20, z: 0.25 }
+    position_goal_min: { x: 0.30, y: -0.20, z: 0.12 }
+
+    # success tolerance (m): cube centre within this 3D distance of the goal.
+    reach_tolerance: 0.05
+
+    # reward parameters
+    step_reward: -0.5
+    multiplier_dist_reward: 2.0
+    reached_goal_reward: 20
+    joint_limits_reward: -2.0
+    none_exe_reward: -5.0
+    not_within_goal_space_reward: -2.0
+
+    # the workspace of the robot (for the observation space and action validity)
+    workspace_max: { x: 0.85, y: 0.85, z: 0.85 }
+    workspace_min: { x: 0.1, y: -0.85, z: 0.1 }

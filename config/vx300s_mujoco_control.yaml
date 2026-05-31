@@ -40,3 +40,21 @@ arm_controller:
     forearm_roll: {trajectory: 0.2, goal: 0.2}
     wrist_angle:  {trajectory: 0.2, goal: 0.2}
     wrist_rotate: {trajectory: 0.2, goal: 0.2}
+
+# Gripper controller (effort JointTrajectoryController on the two prismatic fingers). Only the
+# pick-and-place task spawns this (its controllers_list includes "gripper_controller"); reach and
+# push leave the fingers passive and never spawn it, so loading these params is harmless for them.
+# The MJCF couples the fingers by an equality constraint (right_finger = -left_finger); the task env
+# commands them consistently (right target = -left target) so the controller and constraint agree.
+gripper_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - left_finger
+    - right_finger
+  gains:
+    left_finger:  {p: 100.0, i: 1.0, d: 1.0}
+    right_finger: {p: 100.0, i: 1.0, d: 1.0}
+  constraints:
+    goal_time: 0.5
+    left_finger:  {trajectory: 0.05, goal: 0.02}
+    right_finger: {trajectory: 0.05, goal: 0.02}

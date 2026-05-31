@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Bring up the ViperX-300 S in the MuJoCo backend for the pick-and-place task.
+
+  Like the push launch, but the robot_description keeps the finger transmissions and a gripper
+  controller is spawned, so the task can drive the gripper.
+
+  Run the RL env in attach mode against this stack:
+    env = uniros.make("VX300SMujocoPnpSim-v0", launch_mujoco=False, new_roscore=False,
+                      load_robot=False)
+-->
+<launch>
+
+  <arg name="gui"          default="true"  doc="Show the MuJoCo viewer." />
+  <arg name="use_sim_time" default="true" />
+
+  <!-- Robot description for the vx300s arm + gripper (namespaced). The manufacturer xacro is reused -->
+  <!-- as-is; the multiros helper keeps only the driven joints' transmissions. Pick-and-place drives -->
+  <!-- the two fingers as well, so they are included in --keep (the prismatic `gripper` mimic joint -->
+  <!-- has no MJCF counterpart and is left out). -->
+  <group ns="vx300s">
+    <param name="robot_description"
+           command="$(find multiros)/scripts/mujoco_filtered_description.py $(find viperx300s_description)/urdf/vx300s.urdf.xacro --keep waist shoulder elbow forearm_roll wrist_angle wrist_rotate left_finger right_finger" />
+
+    <!-- Controller configuration for the MuJoCo backend (arm + gripper controllers). -->
+    <rosparam file="$(find vx300s_mujoco_envs)/config/vx300s_mujoco_control.yaml" command="load" />
+
+    <!-- Publish TF from joint states. -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+    <!-- Spawn the arm and gripper controllers once the hardware interface is up. -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" output="screen"
+          args="joint_state_controller arm_controller gripper_controller" />
+  </group>
+
+  <!-- ros_control plugin config consumed by mujoco_ros (scanned under /MujocoPlugins). -->
+  <rosparam file="$(find vx300s_mujoco_envs)/config/vx300s_mujoco_plugins.yaml" command="load" />
+
+  <!-- Start the MuJoCo server with the pick-and-place scene (table + cube) + initial joint states. -->
+  <include file="$(find mujoco_ros)/launch/launch_server.launch">
+    <arg name="use_sim_time"         value="$(arg use_sim_time)" />
+    <arg name="unpause"              value="true" />
+    <arg name="headless"            value="$(eval not arg('gui'))" />
+    <arg name="modelfile"           value="$(find vx300s_mujoco_envs)/assets/vx300s_mjcf/vx300s_push_scene.xml" />
+    <arg name="initial_joint_states" value="$(find vx300s_mujoco_envs)/config/initial_joint_states.yaml" />
+  </include>
+
+</launch>
