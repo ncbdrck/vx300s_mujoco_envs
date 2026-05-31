@@ -514,8 +514,10 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         Returns:
             (lower, upper, vel): three lists of 6 floats each.
         """
-        _, urdf_string = ros_common.load_urdf(pkg_name="viperx300s_description",
-                                              file_name="vx300s.urdf.xacro",
+        urdf_pkg_name = "viperx300s_description"
+        urdf_file_name = "vx300s.urdf.xacro"
+        _, urdf_string = ros_common.load_urdf(pkg_name=urdf_pkg_name,
+                                              file_name=urdf_file_name,
                                               folder="/urdf", param_name=None)
         robot = URDF.from_xml_string(urdf_string)
         by_name = {j.name: j for j in robot.joints}
@@ -523,7 +525,9 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         for name in self.ARM_JOINT_NAMES:
             j = by_name.get(name)
             if j is None or j.limit is None:
-                raise RuntimeError(f"Arm joint '{name}' or its <limit> missing from {urdf_path}")
+                raise RuntimeError(
+                    f"Arm joint '{name}' or its <limit> missing from "
+                    f"{urdf_pkg_name}/urdf/{urdf_file_name}")
             lower.append(float(j.limit.lower))
             upper.append(float(j.limit.upper))
             vel.append(float(j.limit.velocity))
