@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Smoke-test the VX300S MuJoCo push environment with random actions.
+Smoke-test the VX300S MuJoCo pick-and-place environment with random actions.
 
 Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and runs
 the smoke test:

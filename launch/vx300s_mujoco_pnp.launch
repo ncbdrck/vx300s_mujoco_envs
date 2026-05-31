@@ -16,8 +16,8 @@
 
   <!-- Robot description for the vx300s arm + gripper (namespaced). The manufacturer xacro is reused -->
   <!-- as-is; the multiros helper keeps only the driven joints' transmissions. Pick-and-place drives -->
-  <!-- the two fingers as well, so they are included in --keep (the prismatic `gripper` mimic joint -->
-  <!-- has no MJCF counterpart and is left out). -->
+  <!-- the two fingers as well, so left_finger and right_finger are in the kept-joints list (the -->
+  <!-- prismatic gripper mimic joint has no MJCF counterpart and is left out). -->
   <group ns="vx300s">
     <param name="robot_description"
            command="$(find multiros)/scripts/mujoco_filtered_description.py $(find viperx300s_description)/urdf/vx300s.urdf.xacro --keep waist shoulder elbow forearm_roll wrist_angle wrist_rotate left_finger right_finger" />
