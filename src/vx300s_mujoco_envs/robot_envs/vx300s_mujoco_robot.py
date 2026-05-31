@@ -86,7 +86,7 @@ class VX300SMujocoRobotEnv(MujocoBaseEnv.MujocoBaseEnv):
         controllers_file = "vx300s_mujoco_control.yaml"
         # Reach controls only the arm; the gripper is unused so no gripper controller is spawned.
         controllers_list = ["joint_state_controller", "arm_controller"]
-        controller_package_name = "vx300s_mujoco_reach"
+        controller_package_name = "vx300s_mujoco_envs"
 
         # Only the 6 arm joints have a counterpart in the MJCF. The backend keeps just these
         # transmissions in robot_description and strips the gripper/finger ones (which would
