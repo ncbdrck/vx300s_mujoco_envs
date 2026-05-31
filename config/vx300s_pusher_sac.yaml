@@ -2,7 +2,7 @@
 # Comments start with #
 ---
   # Training
-  training_steps: 100000     # The number of training steps to perform
+  training_steps: 20000     # The number of training steps to perform
 
   # Save params
   save_freq: 10000
@@ -59,7 +59,7 @@
   # Weights & Biases monitoring (optional hosted web UI). Off by default; TensorBoard always
   # works locally regardless. When True, the run mirrors the TensorBoard metrics to W&B.
   # Requires: pip install wandb  +  wandb login
-  use_wandb: False
+  use_wandb: True
   wandb_params:
     project: uniros        # W&B project name
     entity:                # your W&B username/team; leave blank for your default entity
