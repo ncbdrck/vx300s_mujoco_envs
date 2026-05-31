@@ -3,9 +3,10 @@
   <name>vx300s_mujoco_envs</name>
   <version>0.0.1</version>
   <description>
-    Standalone test package: ViperX-300 S reach task on the MuJoCo backend
-    (mujoco_ros_pkgs), validating the MultiROS MuJoCo backend end-to-end without
-    modifying rl_environments. Gazebo VX300S reach is mirrored on MuJoCo.
+    ViperX-300 S MuJoCo environments (mujoco_ros_pkgs backend) for validating the
+    MultiROS MuJoCo backend end-to-end. Mirrors the Gazebo VX300S envs but builds
+    each env from the multiros MuJoCo tooling. Reach is implemented; pick-and-place
+    and push are planned. Under development; part of the experimental MuJoCo backend.
   </description>
   <maintainer email="ncbdrck@gmail.com">ncbdrck</maintainer>
   <license>BSD</license>
@@ -16,11 +17,11 @@
   <!-- so it must be a full build+exec dependency (catkin enforces this at configure time). -->
   <depend>rospy</depend>
 
-  <!-- Workspace packages providing the backend, robot description and RL configs. -->
+  <!-- Workspace packages providing the backend and the robot description. -->
   <!-- Declared so catkin orders them before this package in the build graph. -->
+  <!-- (Task and training configs are now self-contained in this package's config/.) -->
   <exec_depend>multiros</exec_depend>
   <exec_depend>viperx300s_description</exec_depend>
-  <exec_depend>rl_environments</exec_depend>
 
   <!-- Runtime ROS message / TF / kinematics packages used by the env code and launch. -->
   <exec_depend>sensor_msgs</exec_depend>
@@ -37,8 +38,7 @@
 
   <!-- Source-built / Python-only packages resolved from the workspace, not rosdep: -->
   <!-- mujoco_ros_pkgs (mujoco_ros, mujoco_ros_msgs, mujoco_ros_control), -->
-  <!-- rl_training_validation, sb3_ros_support, uniros. -->
-  <!-- Same rationale as multiros: not available through rosdep. -->
+  <!-- sb3_ros_support, uniros. Same rationale as multiros: not available through rosdep. -->
 
   <export>
   </export>
