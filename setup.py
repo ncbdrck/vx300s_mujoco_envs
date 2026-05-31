@@ -12,6 +12,7 @@ setup_args = generate_distutils_setup(
         'vx300s_mujoco_envs.robot_envs',
         'vx300s_mujoco_envs.task_envs',
         'vx300s_mujoco_envs.task_envs.reach',
+        'vx300s_mujoco_envs.task_envs.push',
     ],
     package_dir={'': 'src'},
 )

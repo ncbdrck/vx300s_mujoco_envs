@@ -20,6 +20,9 @@ catkin_install_python(PROGRAMS
   scripts/vx300s_mujoco_reach_test.py
   scripts/vx300s_mujoco_reach_train.py
   scripts/vx300s_mujoco_reach_validate.py
+  scripts/vx300s_mujoco_push_test.py
+  scripts/vx300s_mujoco_push_train.py
+  scripts/vx300s_mujoco_push_validate.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
