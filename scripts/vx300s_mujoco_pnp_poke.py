@@ -42,10 +42,10 @@ def parse_args() -> argparse.Namespace:
                    help="Attach to a sim already started with the package launch file.")
     p.add_argument("--mujoco-gui", action="store_true",
                    help="Show the MuJoCo viewer when self-launching.")
-    p.add_argument("--cube-x", type=float, default=0.30, help="Cube x to place it at (m).")
+    p.add_argument("--cube-x", type=float, default=0.33, help="Cube x to place it at (m).")
     p.add_argument("--cube-y", type=float, default=0.00, help="Cube y to place it at (m).")
     p.add_argument("--cube-z", type=float, default=0.02, help="Cube z (centre, on the table).")
-    p.add_argument("--grasp-z", type=float, default=0.02,
+    p.add_argument("--grasp-z", type=float, default=0.04,
                    help="EE height when closing on the cube (m). ~ cube centre height.")
     p.add_argument("--lift-z", type=float, default=0.20, help="Height to lift the cube to (m).")
     p.add_argument("--settle", type=float, default=1.5, help="Seconds to wait after each move.")
