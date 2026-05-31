@@ -2,47 +2,60 @@
 #
 # Parameters for the VX300S MuJoCo push task env. Loaded onto the ROS parameter server under the
 # /vx300s namespace at construction. The arm slides a cube resting on the table (top face at z = 0)
-# to a goal region on the same surface. Cube spawn and goal regions are sized to the shared table
-# (top spans x in [-0.30, 0.70], y in [-0.40, 0.40]).
+# to a goal region on the same surface.
+#
+# Coordinate notes (sized to the shared MuJoCo table, NOT the Gazebo numbers):
+#   * The arm base is at the world origin; the table top is at z = 0; the cube (0.04 side) rests
+#     with its centre at z = 0.02.
+#   * The table top spans x in [-0.30, 0.70], y in [-0.40, 0.40].
+#   * position_cube_* are the OBSERVATION bounds for the cube — wide enough to cover the spawn
+#     region, the goal region, and any overshoot (so a pushed cube never leaves the obs box).
+#   * cube_spawn_* is the (narrow) region the cube is reset into each episode.
+#   * position_goal_* is the region the cube must be pushed to.
 
 # YAML Document starts with ---
 # Comments start with #
 ---
   vx300s:
-    # joint limits (for action space) - in radians
+    # joint limits (for the action space) - in radians
     min_joint_pos: [-3.14, -1.85, -1.76, -3.14, -1.87, -3.14]
     max_joint_pos: [3.14, 1.26, 1.61, 3.14, 2.23, 3.14]
 
-    # the position of the end effector (for observation space)
+    # end-effector position bounds (for the observation space)
     position_ee_max: { x: 0.85, y: 0.85, z: 0.85 }
     position_ee_min: { x: -0.85, y: -0.85, z: -0.85 }
 
     # the maximum distance between two points in the workspace (for observation space)
     max_distance: 2.0
 
-    # cube spawn region (on the table top, z ~ half the cube side = 0.02)
-    position_cube_max: { x: 0.45, y: 0.25, z: 0.02 }
-    position_cube_min: { x: 0.20, y: -0.25, z: 0.02 }
+    # cube OBSERVATION bounds (where the cube may be observed: covers spawn + goal + overshoot).
+    # z has a real range so the bound is not degenerate; the cube normally sits at z ~ 0.02.
+    position_cube_max: { x: 0.75, y: 0.40, z: 0.15 }
+    position_cube_min: { x: 0.00, y: -0.40, z: 0.00 }
+
+    # cube SPAWN region (reset each episode), kept near the arm and well within reach
+    cube_spawn_max: { x: 0.35, y: 0.20, z: 0.02 }
+    cube_spawn_min: { x: 0.20, y: -0.20, z: 0.02 }
 
     # cube position relative to the end effector (for observation space bounds)
     cube_rel_to_ee_max: { x: 1.0, y: 1.0, z: 1.0 }
     cube_rel_to_ee_min: { x: -1.0, y: -1.0, z: -1.0 }
 
-    # the goal region the cube must be pushed to (on the table top)
-    position_goal_max: { x: 0.65, y: 0.25, z: 0.02 }
-    position_goal_min: { x: 0.30, y: -0.25, z: 0.02 }
+    # the goal region the cube must be pushed to (in front of the arm, on the table top)
+    position_goal_max: { x: 0.60, y: 0.20, z: 0.02 }
+    position_goal_min: { x: 0.40, y: -0.20, z: 0.02 }
 
-    # success tolerance: cube within this distance of the goal (m). Looser than reach since the
-    # cube has a finite size and slides.
+    # success tolerance (m): cube within this in-plane distance of the goal. Looser than reach
+    # since the cube has a finite size and slides.
     reach_tolerance: 0.05
 
     # reward parameters
-    step_reward: -1
-    multiplier_dist_reward: 20
-    reached_goal_reward: 100
-    joint_limits_reward: -10
-    none_exe_reward: -10
-    not_within_goal_space_reward: -10
+    step_reward: -0.5
+    multiplier_dist_reward: 2.0
+    reached_goal_reward: 20
+    joint_limits_reward: -2.0
+    none_exe_reward: -5.0
+    not_within_goal_space_reward: -2.0
 
     # the workspace of the robot (for the observation space and action validity)
     workspace_max: { x: 0.85, y: 0.85, z: 0.85 }

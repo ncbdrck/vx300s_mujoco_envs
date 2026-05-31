@@ -192,11 +192,11 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
                                        self.position_goal_min["z"]])
         self.goal_space = spaces.Box(low=low_goal_pos_range, high=high_goal_pos_range, dtype=np.float32, seed=seed)
 
-        # ---- cube spawn space
-        high_cube_range = np.array([self.position_cube_max["x"], self.position_cube_max["y"],
-                                    self.position_cube_max["z"]])
-        low_cube_range = np.array([self.position_cube_min["x"], self.position_cube_min["y"],
-                                   self.position_cube_min["z"]])
+        # ---- cube spawn space (narrow reset region, distinct from the wide cube observation bounds)
+        high_cube_range = np.array([self.cube_spawn_max["x"], self.cube_spawn_max["y"],
+                                    self.cube_spawn_max["z"]])
+        low_cube_range = np.array([self.cube_spawn_min["x"], self.cube_spawn_min["y"],
+                                   self.cube_spawn_min["z"]])
         self.cube_space = spaces.Box(low=low_cube_range, high=high_cube_range, dtype=np.float32, seed=seed)
 
         # ---- workspace (for action validity)
@@ -272,7 +272,7 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         if self.random_cube_spawn:
             cube_init = self._sample_box(self.cube_space)
         else:
-            cube_init = np.array([0.30, 0.0, self.position_cube_min["z"]], dtype=np.float32)
+            cube_init = np.array([0.30, 0.0, self.cube_spawn_min["z"]], dtype=np.float32)
         mujoco_models.mujoco_set_body_state(body_name=self.cube_body_name,
                                             pos_x=float(cube_init[0]), pos_y=float(cube_init[1]),
                                             pos_z=float(cube_init[2]),
@@ -597,8 +597,12 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         self.min_joint_vel = [-v for v in vel]
         self.max_joint_vel = list(vel)
 
+        # Cube observation bounds (wide) and the cube spawn region (narrow) are separate: a pushed
+        # cube travels into the goal region, so the observation box must be wider than the spawn box.
         self.position_cube_max = rospy.get_param('/vx300s/position_cube_max')
         self.position_cube_min = rospy.get_param('/vx300s/position_cube_min')
+        self.cube_spawn_max = rospy.get_param('/vx300s/cube_spawn_max')
+        self.cube_spawn_min = rospy.get_param('/vx300s/cube_spawn_min')
 
         self.position_goal_max = rospy.get_param('/vx300s/position_goal_max')
         self.position_goal_min = rospy.get_param('/vx300s/position_goal_min')
