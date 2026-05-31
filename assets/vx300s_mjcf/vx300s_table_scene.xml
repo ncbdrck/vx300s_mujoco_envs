@@ -1,10 +1,16 @@
 <mujoco model="vx300s table scene">
   <!--
-    Shared scene for the MuJoCo backend tasks (reach / push / pnp): the ViperX-300 S arm,
-    a ground plane, and a static table whose TOP FACE sits at z = 0 — the same plane the arm
-    base is mounted on (vx300s.xml places base_link at the world origin). The table slab extends
-    downward so it does not change the arm's kinematics, joint limits, or FK; it only makes the
-    workspace floor physical (objects rest on z = 0) and gives push/pnp a surface to act on.
+    Shared scene for the MuJoCo backend tasks (reach / push / pnp): the ViperX-300 S arm on a
+    table, with the ground plane below.
+
+    Heights: the arm base (vx300s.xml) is at the world origin, so the TABLE TOP is at z = 0 and
+    the arm is mounted on it. The table is a realistic shape — a thin top slab plus four legs —
+    and the floor plane is dropped to the bottom of the legs (z = -TABLE_H) so the table stands
+    on the ground instead of being a box buried in it. Keeping the table top at z = 0 means the
+    arm's kinematics, FK, joint limits and reach goal sampling are unchanged; the table only adds
+    a physical working surface (objects rest on z = 0).
+
+    Table height TABLE_H = 0.60 m. Top half-extents 0.40 x 0.40, 0.04 thick.
 
     The arm model (vx300s.xml) is the upstream Trossen description with its native MJCF actuators
     removed, since joint commands are applied by mujoco_ros_control.
@@ -29,12 +35,20 @@
 
   <worldbody>
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
-    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
-    <!-- Static table: a box whose top face is at z = 0. Half-extents 0.40 x 0.40 x 0.40 with the
-         body centred at z = -0.40 puts the top at 0.0. The arm base (world origin) rests on it. -->
-    <body name="table" pos="0 0 -0.40">
-      <geom name="table_top" type="box" size="0.40 0.40 0.40" material="table"
+    <!-- Ground plane dropped to the foot of the table legs (TABLE_H = 0.60 below the top). -->
+    <geom name="floor" pos="0 0 -0.60" size="0 0 0.05" type="plane" material="groundplane"/>
+
+    <!-- Static table: a thin top whose upper face is at z = 0, plus four legs to the floor. -->
+    <body name="table" pos="0 0 0">
+      <!-- Top slab: 0.80 x 0.80 footprint, 0.04 thick, top face at z = 0 (centre z = -0.02). -->
+      <geom name="table_top" type="box" pos="0 0 -0.02" size="0.40 0.40 0.02" material="table"
             friction="1.0 0.005 0.0001"/>
+      <!-- Legs: 0.06 x 0.06 posts from just under the slab (z = -0.04) to the floor (z = -0.60),
+           inset from the corners. Height 0.56 -> half 0.28, centre z = -0.32. -->
+      <geom name="table_leg_px_py" type="box" pos=" 0.36  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_px_ny" type="box" pos=" 0.36 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_nx_py" type="box" pos="-0.36  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_nx_ny" type="box" pos="-0.36 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
     </body>
   </worldbody>
 </mujoco>
