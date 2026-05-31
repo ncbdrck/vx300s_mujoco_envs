@@ -39,12 +39,12 @@
   <!-- ros_control plugin config consumed by mujoco_ros (scanned under /MujocoPlugins). -->
   <rosparam file="$(find vx300s_mujoco_envs)/config/vx300s_mujoco_plugins.yaml" command="load" />
 
-  <!-- Start the MuJoCo server with the reach scene + the initial joint states. -->
+  <!-- Start the MuJoCo server with the shared table scene + the initial joint states. -->
   <include file="$(find mujoco_ros)/launch/launch_server.launch">
     <arg name="use_sim_time"         value="$(arg use_sim_time)" />
     <arg name="unpause"              value="true" />
     <arg name="headless"            value="$(eval not arg('gui'))" />
-    <arg name="modelfile"           value="$(find vx300s_mujoco_envs)/assets/vx300s_mjcf/vx300s_scene.xml" />
+    <arg name="modelfile"           value="$(find vx300s_mujoco_envs)/assets/vx300s_mjcf/vx300s_table_scene.xml" />
     <arg name="initial_joint_states" value="$(find vx300s_mujoco_envs)/config/initial_joint_states.yaml" />
   </include>
 

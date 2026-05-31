@@ -52,7 +52,7 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
 
     def __init__(self, launch_mujoco: bool = True, new_roscore: bool = True, roscore_port: str = None,
                  mujoco_paused: bool = False, mujoco_gui: bool = False, model_path: str = None,
-                 model_pkg: str = "vx300s_mujoco_envs", model_name: str = "assets/vx300s_mjcf/vx300s_scene.xml",
+                 model_pkg: str = "vx300s_mujoco_envs", model_name: str = "assets/vx300s_mjcf/vx300s_table_scene.xml",
                  server_name: str = "mujoco_server", seed: int = None, reward_type: str = "Dense",
                  delta_action: bool = True, delta_coeff: float = 0.05,
                  environment_loop_rate: float = 10, action_cycle_time: float = 0.100,
