@@ -6,7 +6,7 @@ Mirrors the train script for env construction; loads a saved model and rolls it 
 deterministically for ``--episodes`` episodes, reporting the success rate.
 
 Default (self-launch): one command brings up the sim + controllers and validates:
-    rosrun vx300s_mujoco_reach vx300s_mujoco_reach_validate.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_validate.py
 Pass --attach to instead connect to a stack started with the package launch file.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ import rospy
 import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
 
 # Trigger env registration.
-from vx300s_mujoco_reach.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
+from vx300s_mujoco_envs.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
 
 from sb3_ros_support.sac import SAC
 
@@ -29,11 +29,11 @@ from multiros.wrappers.time_limit_wrapper import TimeLimitWrapper
 
 ENV_ID = "VX300SMujocoReacherSim-v0"
 
-CONFIG_PKG = "rl_training_validation"
+CONFIG_PKG = "vx300s_mujoco_envs"
 CONFIG_FILE = "vx300s_reacher_sac.yaml"
 
 # Path is relative to this package (model_pkg below).
-PKG = "vx300s_mujoco_reach"
+PKG = "vx300s_mujoco_envs"
 MODEL_BASE = "/models/sim/sac/vx300s/reach/"
 
 
@@ -85,7 +85,7 @@ def main() -> int:
     env = build_env(args)
 
     model_path = MODEL_BASE + args.model_tag
-    # The model lives in this package; the SAC config lives in rl_training_validation.
+    # The model and the SAC config both live in this package.
     model = SAC.load_trained_model(model_path=model_path, model_pkg=PKG,
                                    config_filename=CONFIG_FILE, config_file_pkg=CONFIG_PKG,
                                    env=env)

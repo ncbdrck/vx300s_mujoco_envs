@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(vx300s_mujoco_reach)
+project(vx300s_mujoco_envs)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy

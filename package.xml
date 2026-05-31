@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>vx300s_mujoco_reach</name>
+  <name>vx300s_mujoco_envs</name>
   <version>0.0.1</version>
   <description>
     Standalone test package: ViperX-300 S reach task on the MuJoCo backend

@@ -21,7 +21,7 @@ from tf.transformations import euler_from_quaternion
 
 register(
     id='VX300SMujocoRobotEnv-v0',
-    entry_point='vx300s_mujoco_reach.robot_envs.vx300s_mujoco_robot:VX300SMujocoRobotEnv',
+    entry_point='vx300s_mujoco_envs.robot_envs.vx300s_mujoco_robot:VX300SMujocoRobotEnv',
     max_episode_steps=1000,
 )
 

@@ -5,12 +5,12 @@ Train an SB3 SAC policy on the VX300S MuJoCo reach task.
 Standard env id: ``VX300SMujocoReacherSim-v0``
 
 Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and trains:
-    rosrun vx300s_mujoco_reach vx300s_mujoco_reach_train.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_train.py
 Pass --attach to instead connect to a stack started with the package launch file.
 
 By default the environment self-launches its own MuJoCo server + controllers (one command);
 pass --attach to instead connect to a stack started with the package launch file.
-The SAC hyper-parameters are reused from rl_training_validation's vx300s_reacher_sac.yaml.
+The SAC hyper-parameters live in this package's config/vx300s_reacher_sac.yaml.
 Models and logs are written under this package.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ import sys
 import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
 
 # Trigger env registration.
-from vx300s_mujoco_reach.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
+from vx300s_mujoco_envs.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
 
 from sb3_ros_support.sac import SAC
 
@@ -32,13 +32,13 @@ from multiros.wrappers.time_limit_wrapper import TimeLimitWrapper
 
 ENV_ID = "VX300SMujocoReacherSim-v0"
 
-# SAC hyper-parameters reused from the existing rl_training_validation config.
-# (SAC tends to converge faster than TD3 on this reach task.)
-CONFIG_PKG = "rl_training_validation"
+# SAC hyper-parameters live in this package's config/ (SAC tends to converge faster than TD3
+# on this reach task).
+CONFIG_PKG = "vx300s_mujoco_envs"
 CONFIG_FILE = "vx300s_reacher_sac.yaml"
 
 # Paths are relative to this package (model_pkg_path below).
-PKG = "vx300s_mujoco_reach"
+PKG = "vx300s_mujoco_envs"
 SAVE_PATH = "/models/sim/sac/vx300s/reach/"
 LOG_PATH = "/logs/sim/sac/vx300s/reach/"
 

@@ -4,11 +4,11 @@ Smoke-test the VX300S MuJoCo reach environment with random actions.
 
 Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and runs
 the smoke test, mirroring the one-call workflow of the rl_environments envs:
-    rosrun vx300s_mujoco_reach vx300s_mujoco_reach_test.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_test.py
 
 To instead attach to a stack started separately (useful while debugging the bring-up), set
 ATTACH_MODE = True below and first run:
-    roslaunch vx300s_mujoco_reach vx300s_mujoco_reach.launch gui:=true
+    roslaunch vx300s_mujoco_envs vx300s_mujoco_reach.launch gui:=true
 
 The environment creates its own ROS node during construction, so this script does not call
 rospy.init_node itself.
@@ -20,7 +20,7 @@ import gymnasium as gym
 from gymnasium.wrappers import TimeLimit
 
 # Environment registration (importing the module registers "VX300SMujocoReacherSim-v0").
-from vx300s_mujoco_reach.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
+from vx300s_mujoco_envs.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
 
 # wrappers
 from multiros.wrappers.normalize_action_wrapper import NormalizeActionWrapper

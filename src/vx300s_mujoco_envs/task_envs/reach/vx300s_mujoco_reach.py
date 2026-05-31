@@ -11,7 +11,7 @@ from gymnasium.envs.registration import register
 import scipy.spatial
 
 # Custom robot env
-from vx300s_mujoco_reach.robot_envs import vx300s_mujoco_robot
+from vx300s_mujoco_envs.robot_envs import vx300s_mujoco_robot
 
 # core modules of the framework
 from multiros.utils import mujoco_core
@@ -21,7 +21,7 @@ from multiros.utils import ros_markers
 
 register(
     id='VX300SMujocoReacherSim-v0',
-    entry_point='vx300s_mujoco_reach.task_envs.reach.vx300s_mujoco_reach:VX300SMujocoReacherEnv',
+    entry_point='vx300s_mujoco_envs.task_envs.reach.vx300s_mujoco_reach:VX300SMujocoReacherEnv',
     max_episode_steps=100,
 )
 
@@ -52,7 +52,7 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
 
     def __init__(self, launch_mujoco: bool = True, new_roscore: bool = True, roscore_port: str = None,
                  mujoco_paused: bool = False, mujoco_gui: bool = False, model_path: str = None,
-                 model_pkg: str = "vx300s_mujoco_reach", model_name: str = "assets/vx300s_mjcf/vx300s_scene.xml",
+                 model_pkg: str = "vx300s_mujoco_envs", model_name: str = "assets/vx300s_mjcf/vx300s_scene.xml",
                  server_name: str = "mujoco_server", seed: int = None, reward_type: str = "Dense",
                  delta_action: bool = True, delta_coeff: float = 0.05,
                  environment_loop_rate: float = 10, action_cycle_time: float = 0.100,
@@ -71,7 +71,7 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         # The mujoco_ros_control plugin config and the home pose. The launch file passes these to
         # the server; the self-launch path must pass them too, otherwise no controller_manager comes
         # up (and load_robot's controllers have nothing to attach to) and the home pose is wrong.
-        _pkg_path = rospkg.RosPack().get_path("vx300s_mujoco_reach")
+        _pkg_path = rospkg.RosPack().get_path("vx300s_mujoco_envs")
         plugin_config = _pkg_path + "/config/vx300s_mujoco_plugins.yaml"
         initial_joint_states = _pkg_path + "/config/initial_joint_states.yaml"
 
@@ -145,7 +145,7 @@ class VX300SMujocoReacherEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         self.debug = debug
 
         # load task parameters onto the parameter server (reused from the Gazebo task)
-        ros_common.ros_load_yaml(pkg_name="rl_environments", file_name="vx300s_reach_task_config.yaml", ns="/")
+        ros_common.ros_load_yaml(pkg_name="vx300s_mujoco_envs", file_name="vx300s_reach_task_config.yaml", ns="/")
         self._get_params()
 
         # Joint action space (6 arm joints)
