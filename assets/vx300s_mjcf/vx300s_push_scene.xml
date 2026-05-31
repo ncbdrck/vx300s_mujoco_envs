@@ -1,0 +1,25 @@
+<mujoco model="vx300s push scene">
+  <!--
+    Push/pick-and-place scene: the shared arm + table scene plus a free-floating cube the arm can
+    push (or grasp). The cube is a single body with a <freejoint/>, so it moves under contact and
+    can be repositioned each episode via the mujoco_ros set_body_state service (the task env calls
+    multiros.utils.mujoco_models.mujoco_set_body_state on the body named "cube") — the MuJoCo
+    analogue of Gazebo's per-episode /gazebo/set_model_state reposition (no spawn/delete).
+
+    The cube rests on the table top (z = 0): a half-size of 0.02 puts its centre at z = 0.02.
+  -->
+  <include file="vx300s_table_scene.xml"/>
+
+  <asset>
+    <material name="cube" rgba="0.85 0.1 0.1 1.0"/>
+  </asset>
+
+  <worldbody>
+    <body name="cube" pos="0.30 0.0 0.02">
+      <freejoint name="cube_free"/>
+      <inertial pos="0 0 0" mass="0.05" diaginertia="1.33e-5 1.33e-5 1.33e-5"/>
+      <geom name="cube_geom" type="box" size="0.02 0.02 0.02" material="cube"
+            friction="1.0 0.005 0.0001"/>
+    </body>
+  </worldbody>
+</mujoco>

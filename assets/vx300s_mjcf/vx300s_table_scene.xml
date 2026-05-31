@@ -1,0 +1,40 @@
+<mujoco model="vx300s table scene">
+  <!--
+    Shared scene for the MuJoCo backend tasks (reach / push / pnp): the ViperX-300 S arm,
+    a ground plane, and a static table whose TOP FACE sits at z = 0 — the same plane the arm
+    base is mounted on (vx300s.xml places base_link at the world origin). The table slab extends
+    downward so it does not change the arm's kinematics, joint limits, or FK; it only makes the
+    workspace floor physical (objects rest on z = 0) and gives push/pnp a surface to act on.
+
+    The arm model (vx300s.xml) is the upstream Trossen description with its native MJCF actuators
+    removed, since joint commands are applied by mujoco_ros_control.
+  -->
+  <include file="vx300s.xml"/>
+
+  <statistic center="0 0 0.1" extent="0.8"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="140" elevation="-30"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+    <material name="table" rgba="0.62 0.45 0.30 1.0"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+    <!-- Static table: a box whose top face is at z = 0. Half-extents 0.40 x 0.40 x 0.40 with the
+         body centred at z = -0.40 puts the top at 0.0. The arm base (world origin) rests on it. -->
+    <body name="table" pos="0 0 -0.40">
+      <geom name="table_top" type="box" size="0.40 0.40 0.40" material="table"
+            friction="1.0 0.005 0.0001"/>
+    </body>
+  </worldbody>
+</mujoco>
