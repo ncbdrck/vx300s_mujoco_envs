@@ -10,14 +10,18 @@
     arm's kinematics, FK, joint limits and reach goal sampling are unchanged; the table only adds
     a physical working surface (objects rest on z = 0).
 
-    Table height TABLE_H = 0.60 m. Top half-extents 0.40 x 0.40, 0.04 thick.
+    Layout: the top is RECTANGULAR and extended toward +x (in front of the arm) so push/pnp have
+    a real workspace. The arm stays at the world origin [0,0,0] and sits in the BACK third of the
+    table; the front edge reaches x = +0.70, well beyond the reach goal region (x up to ~0.40) so
+    a cube can be pushed forward without falling off. Top spans x: -0.30..+0.70 (length 1.0),
+    y: -0.40..+0.40; 0.04 thick. Table height TABLE_H = 0.60 m.
 
     The arm model (vx300s.xml) is the upstream Trossen description with its native MJCF actuators
     removed, since joint commands are applied by mujoco_ros_control.
   -->
   <include file="vx300s.xml"/>
 
-  <statistic center="0 0 0.1" extent="0.8"/>
+  <statistic center="0.2 0 0.05" extent="0.9"/>
 
   <visual>
     <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
@@ -38,17 +42,19 @@
     <!-- Ground plane dropped to the foot of the table legs (TABLE_H = 0.60 below the top). -->
     <geom name="floor" pos="0 0 -0.60" size="0 0 0.05" type="plane" material="groundplane"/>
 
-    <!-- Static table: a thin top whose upper face is at z = 0, plus four legs to the floor. -->
+    <!-- Static table, rectangular and extended toward +x; top face at z = 0, legs to the floor. -->
     <body name="table" pos="0 0 0">
-      <!-- Top slab: 0.80 x 0.80 footprint, 0.04 thick, top face at z = 0 (centre z = -0.02). -->
-      <geom name="table_top" type="box" pos="0 0 -0.02" size="0.40 0.40 0.02" material="table"
+      <!-- Top slab: x in [-0.30, 0.70] (centre 0.20, half 0.50), y in [-0.40, 0.40], 0.04 thick
+           (top face at z = 0 -> centre z = -0.02). -->
+      <geom name="table_top" type="box" pos="0.20 0 -0.02" size="0.50 0.40 0.02" material="table"
             friction="1.0 0.005 0.0001"/>
-      <!-- Legs: 0.06 x 0.06 posts from just under the slab (z = -0.04) to the floor (z = -0.60),
-           inset from the corners. Height 0.56 -> half 0.28, centre z = -0.32. -->
-      <geom name="table_leg_px_py" type="box" pos=" 0.36  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
-      <geom name="table_leg_px_ny" type="box" pos=" 0.36 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
-      <geom name="table_leg_nx_py" type="box" pos="-0.36  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
-      <geom name="table_leg_nx_ny" type="box" pos="-0.36 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <!-- Legs: 0.06 x 0.06 posts inset 0.04 from the top corners, from just under the slab
+           (z = -0.04) to the floor (z = -0.60). Height 0.56 -> half 0.28, centre z = -0.32.
+           Front legs at x = 0.66, back legs at x = -0.26; y = +/-0.36. -->
+      <geom name="table_leg_px_py" type="box" pos=" 0.66  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_px_ny" type="box" pos=" 0.66 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_nx_py" type="box" pos="-0.26  0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
+      <geom name="table_leg_nx_ny" type="box" pos="-0.26 -0.36 -0.32" size="0.03 0.03 0.28" material="table"/>
     </body>
   </worldbody>
 </mujoco>
