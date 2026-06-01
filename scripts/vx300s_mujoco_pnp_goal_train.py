@@ -20,7 +20,7 @@ import sys
 import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
 
 # Trigger env registration.
-from vx300s_mujoco_envs.task_envs.pnp import pnp  # noqa: F401
+from vx300s_mujoco_envs.task_envs.pnp import vx300s_mujoco_pnp_goal  # noqa: F401
 
 from sb3_ros_support.sac import SAC
 

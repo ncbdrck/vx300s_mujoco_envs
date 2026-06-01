@@ -19,7 +19,7 @@ import gymnasium as gym
 from gymnasium.wrappers import TimeLimit
 
 # Environment registration (importing the module registers "VX300SMujocoPnpGoalSim-v0").
-from vx300s_mujoco_envs.task_envs.pnp import pnp  # noqa: F401
+from vx300s_mujoco_envs.task_envs.pnp import vx300s_mujoco_pnp_goal  # noqa: F401
 
 # wrappers
 from multiros.wrappers.normalize_action_wrapper import NormalizeActionWrapper
