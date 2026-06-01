@@ -57,6 +57,14 @@ class VX300SMujocoReacherGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalE
 
         self.realtime_mode = realtime_mode
 
+        # Goal (HER) envs always use the sparse reward in compute_reward: HER relabels
+        # transitions, so the reward must be a deterministic function of
+        # (achieved_goal, desired_goal). reward_type is accepted for signature symmetry
+        # with the standard envs but does not select a dense reward here.
+        if str(reward_type).lower() != "sparse":
+            rospy.logwarn("Goal-conditioned env uses sparse HER rewards; "
+                          "ignoring reward_type=%s", reward_type)
+
         ros_port = None
         mujoco_pid = None
 
@@ -266,7 +274,9 @@ class VX300SMujocoReacherGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalE
 
     def compute_terminated(self, achieved_goal, desired_goal, info):
         distance = np.linalg.norm(np.asarray(achieved_goal) - np.asarray(desired_goal), axis=-1)
-        return bool(distance <= self.reach_tolerance)
+        # Batch-safe like compute_reward: scalar in -> bool, (N,) in -> bool array.
+        terminated = distance <= self.reach_tolerance
+        return bool(terminated) if np.ndim(terminated) == 0 else terminated
 
     def compute_truncated(self, achieved_goal, desired_goal, info):
         return False
@@ -402,6 +412,6 @@ class VX300SMujocoReacherGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalE
         return ros_port, mujoco_pid
 
     def _launch_roscore(self, port=None, set_new_master_vars=False):
-        ros_port, _ = ros_common.launch_roscore(port=int(port), set_new_master_vars=set_new_master_vars)
+        ros_port, _ = ros_common.launch_roscore(port=int(port) if port is not None else None, set_new_master_vars=set_new_master_vars)
         ros_common.change_ros_master(ros_port)
         return ros_port

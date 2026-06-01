@@ -35,7 +35,7 @@ ENV_ID = 'VX300SMujocoReacherSim-v0'
 # file (useful while debugging the simulation bring-up).
 ATTACH_MODE = False
 
-# Real-time (paper section 7) loop vs. paused MDP loop.
+# Real-time loop vs. paused MDP loop.
 REALTIME_MODE = True
 
 # Loop timing. action_cycle_time must be >= 1 / environment_loop_rate.

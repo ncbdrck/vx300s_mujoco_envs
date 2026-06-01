@@ -5,7 +5,7 @@ Train an SB3 SAC+HER policy on the goal-conditioned VX300S MuJoCo push task.
 Standard env id: ``VX300SMujocoPushGoalSim-v0``
 
 Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and trains:
-    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_goal_train.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_push_goal_train.py
 Pass --attach to instead connect to a stack started with the package launch file.
 
 The env exposes a Dict observation (observation/achieved_goal/desired_goal); training uses the
@@ -17,7 +17,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
+import uniros as gym  # subprocess-isolated env proxy that wraps gym.Env (see UniROS docs)
 
 # Trigger env registration.
 from vx300s_mujoco_envs.task_envs.push import vx300s_mujoco_push_goal  # noqa: F401
@@ -45,7 +45,7 @@ def parse_args() -> argparse.Namespace:
                    help="Attach to a simulation already started with the package launch file "
                         "instead of letting the env launch its own MuJoCo server + roscore.")
     p.add_argument("--no-realtime", action="store_true",
-                   help="Use the paused MDP loop instead of the real-time (paper section 7) loop.")
+                   help="Use the paused MDP loop instead of the real-time loop.")
     p.add_argument("--fast", action="store_true",
                    help="Deterministic-step mode: advance the sim with the MuJoCo step action "
                         "(no wall-clock sleep) so training runs as fast as the CPU allows. Implies "
@@ -111,8 +111,7 @@ def main() -> int:
     # Optional CLI override of the YAML training_steps (e.g. a short smoke run).
     if args.steps is not None:
         model.parm_dict["training_steps"] = args.steps
-    model.train()
-    model.save_model()
+    model.train()  # BasicModel.train() already saves the trained model
     model.close_env()
     return 0
 

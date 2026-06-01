@@ -3,7 +3,7 @@ vx300s: # namespace
     # ******** Task Related parameters (not used by the env)
     max_steps: 1000
 
-    # ******** Action Space — 6-DOF arm + 2 prismatic finger joints
+    # ******** Action Space — 6-DOF arm (reach is arm-only; the MJCF fingers stay passive)
     # Joint limits taken from interbotix_xsarm_descriptions/urdf/vx300s.urdf.xacro
     # (slight margin on waist / forearm_roll / wrist_rotate to avoid the URDF's
     # pi_offset epsilon clamp).
@@ -158,10 +158,6 @@ vx300s: # namespace
       x: 0.25
       y: -0.30
       z: 0.20
-
-    # ******** Gazebo Simulation parameters
-    gazebo_time_step: 0.001
-    gazebo_update_rate_multiplier: 1.0
 
     # ******** Tolerance for the position of the goal
     reach_tolerance: 0.02

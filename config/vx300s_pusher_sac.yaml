@@ -27,7 +27,8 @@
     features_extractor_class: FlattenExtractor # FlattenExtractor, BaseFeaturesExtractor or CombinedExtractor
     optimizer_class: Adam # Adam, Adadelta, Adagrad, RMSprop or SGD
 
-  # UseAction noise
+  # UseAction noise. Ignored while use_sde: True below — under gSDE, SB3 drives
+  # exploration with SDE and does not also apply Gaussian action noise.
   use_action_noise: True # For now only Gaussian noise is supported
   action_noise:
     mean: 0.0
@@ -56,7 +57,7 @@
       unit: step  # episode or step
     seed: 10
 
-  # Weights & Biases monitoring (optional hosted web UI). Off by default; TensorBoard always
+  # Weights & Biases monitoring (optional hosted web UI). Enabled by default in this repo's configs (use_wandb: True below); TensorBoard always
   # works locally regardless. When True, the run mirrors the TensorBoard metrics to W&B.
   # Requires: pip install wandb  +  wandb login
   use_wandb: True

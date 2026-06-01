@@ -58,6 +58,8 @@
     none_exe_reward: -5.0
     not_within_goal_space_reward: -2.0
 
-    # the workspace of the robot (for the observation space and action validity)
+    # the workspace of the robot (for the observation space and action validity).
+    # z floor is the EE (ee_gripper_link) FK floor: low enough to grasp a cube on the
+    # table top (z=0), kept above the per-link table-safety floor in the robot env.
     workspace_max: { x: 0.85, y: 0.85, z: 0.85 }
-    workspace_min: { x: 0.1, y: -0.85, z: 0.1 }
+    workspace_min: { x: 0.1, y: -0.85, z: 0.04 }

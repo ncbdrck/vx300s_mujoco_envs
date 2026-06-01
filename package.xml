@@ -5,8 +5,9 @@
   <description>
     ViperX-300 S MuJoCo environments (mujoco_ros_pkgs backend) for validating the
     MultiROS MuJoCo backend end-to-end. Mirrors the Gazebo VX300S envs but builds
-    each env from the multiros MuJoCo tooling. Reach is implemented; pick-and-place
-    and push are planned. Under development; part of the experimental MuJoCo backend.
+    each env from the multiros MuJoCo tooling. Provides reach, push, and pick-and-place
+    tasks (plus goal-conditioned variants). Available but experimental; part of the MuJoCo
+    backend (multiros branch feature/mujoco-backend, not yet merged).
   </description>
   <maintainer email="ncbdrck@gmail.com">ncbdrck</maintainer>
   <license>BSD</license>

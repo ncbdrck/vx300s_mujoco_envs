@@ -1,10 +1,13 @@
 # ros_control configuration for the VX300S arm under mujoco_ros_control.
 #
-# Reach task: only the 6-DOF arm is controlled. The Interbotix description's gripper is a
-# prismatic `gripper` joint (the fingers mimic it) that has no counterpart in the MuJoCo model,
-# so its transmission is stripped from robot_description by the multiros backend (the env passes
-# controlled_joints; see multiros.utils.mujoco_models.filter_urdf_transmissions) and no gripper
-# controller is spawned. The MJCF finger joints remain passive.
+# The Interbotix description's gripper is a prismatic `gripper` joint (the fingers mimic it) that
+# has no counterpart in the MuJoCo model, so its transmission is stripped from robot_description by
+# the multiros backend (the env passes controlled_joints; see
+# multiros.utils.mujoco_models.filter_urdf_transmissions).
+#
+# Reach and push control only the 6-DOF arm and never spawn the gripper controller below — their
+# MJCF finger joints stay passive. Pick-and-place additionally spawns `gripper_controller` (it
+# lists it in controllers_list) to drive the left/right finger joints directly.
 #
 # The arm joints use EffortJointInterface transmissions (from the Interbotix xacro), so the
 # trajectory controller is the effort variant; its per-joint `gains:` are the active PID

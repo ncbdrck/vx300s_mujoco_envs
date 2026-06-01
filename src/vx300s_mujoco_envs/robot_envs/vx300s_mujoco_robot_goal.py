@@ -55,9 +55,15 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
                  seed: int = None, real_time: bool = False, action_cycle_time: float = 0.0,
                  load_robot: bool = True, sim_step_mode: int = 1, num_mujoco_steps: int = 1,
                  controllers_file: str = "vx300s_mujoco_control.yaml",
-                 controllers_list: list = None, controlled_joints: list = None):
+                 controllers_list: list = None, controlled_joints: list = None,
+                 readiness_timeout: float = 30.0):
 
         rospy.loginfo("Start Init VX300SMujocoRobotEnv")
+
+        # How long the per-topic readiness checks wait before raising
+        # (covers slower hardware / GUI startup). Set higher with the
+        # constructor kwarg if your launch takes longer.
+        self.readiness_timeout = float(readiness_timeout)
 
         if ros_port is not None:
             ros_common.change_ros_master(ros_port=ros_port)
@@ -103,6 +109,9 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
             controllers_list = self.ARM_CONTROLLERS
         if controlled_joints is None:
             controlled_joints = self.ARM_JOINTS
+        # Remember which controllers this task spawned so the readiness check can wait on the right
+        # ones (e.g. the gripper controller for pick-and-place, absent for reach/push).
+        self.controllers_list = controllers_list
 
         reset_controllers = False
         reset_mode = "world"
@@ -356,13 +365,40 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
     # ---------------------------------------------------
     #   Readiness
 
+    def _wait_for_topic(self, topic, timeout=30.0, poll=0.2):
+        """
+        Block until ``topic`` is announced on the master, or raise after
+        ``timeout`` seconds with an actionable error. Polling-based wrapper
+        around ``rostopic.get_topic_type(..., blocking=False)`` so a broken
+        launch never hangs indefinitely.
+        """
+        deadline = rospy.get_time() + timeout
+        while rospy.get_time() < deadline and not rospy.is_shutdown():
+            topic_type, _, _ = rostopic.get_topic_type(topic, blocking=False)
+            if topic_type:
+                rospy.logdebug(f"{topic} is up: {topic_type}")
+                return True
+            rospy.sleep(poll)
+        raise RuntimeError(
+            f"Readiness check timed out after {timeout:.0f}s waiting for {topic}. "
+            "Confirm the MuJoCo server + controllers came up "
+            "(check the launch output)."
+        )
+
     def _check_joint_states_ready(self):
-        rospy.logdebug(rostopic.get_topic_type(self.joint_state_topic, blocking=True))
+        self._wait_for_topic(self.joint_state_topic, timeout=self.readiness_timeout)
         return True
 
     def _check_ros_controllers_ready(self):
-        # Only the arm controller is spawned for the reach task (no gripper controller).
-        rospy.logdebug(rostopic.get_topic_type("/vx300s/arm_controller/state", blocking=True))
+        # Wait on the state topic of every trajectory controller this task actually spawned. Reach
+        # and push spawn only arm_controller; pick-and-place also spawns gripper_controller, which
+        # is task-critical, so it must be verified too. (joint_state_controller has no /state topic;
+        # its readiness is covered by _check_joint_states_ready via /joint_states.)
+        for controller in getattr(self, "controllers_list", ["arm_controller"]):
+            if controller == "joint_state_controller":
+                continue
+            self._wait_for_topic(f"/vx300s/{controller}/state",
+                                 timeout=self.readiness_timeout)
         return True
 
     def _check_connection_and_readiness(self):

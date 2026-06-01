@@ -234,7 +234,7 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
                 self.loop_counter = 0
                 self.action_counter = 0
 
-            # Real-time mode: drive the env loop with a rospy.Timer (paper section 7). Normal mode
+            # Real-time mode: drive the env loop with a rospy.Timer. Normal mode
             # reuses the same obs_r/reward_r cache but computes synchronously in _set_action,
             # so the timer is not registered.
             if self.realtime_mode:
@@ -366,7 +366,7 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
 
     def environment_loop(self, event):
         """
-        Real-time RL loop (paper section 7). Periodically refreshes obs/reward/done and re-applies
+        Real-time RL loop. Periodically refreshes obs/reward/done and re-applies
         the latest action (action repeats) so the agent never waits on sensor/actuator processing.
         """
         if self.init_done:
@@ -462,9 +462,15 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         else:
             prev_action = self.prev_action.copy()
 
+        # Slice joint vectors to the arm length explicitly so the obs shape stays correct even if
+        # a future ``controlled_joints`` includes the gripper (and ``joint_pos_all`` grows past 6).
+        # The Goal variant already slices defensively; mirror that here.
+        arm_n = len(self.arm_joint_names)
         obs = np.concatenate((self.ee_pos, self.cube_pos, vec_ee_cube, vec_cube_goal,
-                              euclidean_distance_cube_goal, self.joint_pos_all, prev_action,
-                              self.current_joint_velocities), axis=None, dtype=np.float32)
+                              euclidean_distance_cube_goal,
+                              self.joint_pos_all[:arm_n], prev_action,
+                              self.current_joint_velocities[:arm_n]),
+                             axis=None, dtype=np.float32)
 
         return obs.copy()
 
@@ -639,6 +645,6 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         return ros_port, mujoco_pid
 
     def _launch_roscore(self, port=None, set_new_master_vars=False):
-        ros_port, _ = ros_common.launch_roscore(port=int(port), set_new_master_vars=set_new_master_vars)
+        ros_port, _ = ros_common.launch_roscore(port=int(port) if port is not None else None, set_new_master_vars=set_new_master_vars)
         ros_common.change_ros_master(ros_port)
         return ros_port

@@ -12,14 +12,14 @@
 
   # Load model params
   load_model: False
-  model_name: trained_model_05_09_2021_22_04_00
+  model_name: trained_model_reach_goal
 
   # Logging parameters
   log_folder: SAC_reach_goal_model
   log_interval: 4 # The number of episodes between logs
   reset_num_timesteps: False # If true, will reset the number of timesteps to 0 every training
 
-  # Weights & Biases monitoring (optional hosted web UI). Off by default; TensorBoard always
+  # Weights & Biases monitoring (optional hosted web UI). Enabled by default in this repo's configs (use_wandb: True below); TensorBoard always
   # works locally regardless. When True, the run mirrors the TensorBoard metrics to W&B.
   # Requires: pip install wandb  +  wandb login
   use_wandb: True

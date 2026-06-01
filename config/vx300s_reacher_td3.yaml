@@ -6,16 +6,16 @@
 
   # Save params
   save_freq: 10000
-  save_prefix: td3_model_real_time_jul29_s10_el10_ac500ms
-  trained_model_name: trained_model_real_time_jul29_s10_el10_ac500ms
+  save_prefix: td3_reach_model
+  trained_model_name: trained_model_reach_td3
   save_replay_buffer: True
 
   # Load model params
   load_model: False
-  model_name: trained_model_real_time_mar26
+  model_name: trained_model_reach_td3
 
   # Logging parameters
-  log_folder: TD3_model_real_time_jul29_s10_el10_ac500ms
+  log_folder: TD3_reach_model
   log_interval: 1 # The number of episodes between logs
   reset_num_timesteps: False # If true, will reset the number of timesteps to 0 every training 
 

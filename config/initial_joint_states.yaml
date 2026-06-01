@@ -10,8 +10,8 @@ initial_joint_positions:
     forearm_roll: "0.0"
     wrist_angle: "0.0"
     wrist_rotate: "0.0"
-    left_finger: "0.024"
-    right_finger: "-0.024"
+    left_finger: "0.057"
+    right_finger: "-0.057"
 
 initial_joint_velocities:
   joint_map:

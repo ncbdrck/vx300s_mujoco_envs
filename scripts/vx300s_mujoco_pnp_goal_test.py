@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Smoke-test the goal-conditioned VX300S MuJoCo reach environment with random actions.
+Smoke-test the goal-conditioned VX300S MuJoCo pick-and-place environment with random actions.
 
 Default (self-launch): one command brings up roscore + the MuJoCo server + controllers and runs
 the smoke test:
-    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_goal_test.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_pnp_goal_test.py
 
 To instead attach to a stack started separately, set ATTACH_MODE = True below and first run:
-    roslaunch vx300s_mujoco_envs vx300s_mujoco_reach.launch gui:=true
+    roslaunch vx300s_mujoco_envs vx300s_mujoco_pnp.launch gui:=true
 
 The environment creates its own ROS node during construction, so this script does not call
 rospy.init_node itself. The observation is a Dict (observation/achieved_goal/desired_goal).

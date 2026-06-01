@@ -6,7 +6,7 @@ Mirrors the train script for env construction; loads a saved model and rolls it 
 deterministically for ``--episodes`` episodes, reporting the success rate.
 
 Default (self-launch): one command brings up the sim + controllers and validates:
-    rosrun vx300s_mujoco_envs vx300s_mujoco_reach_goal_validate.py
+    rosrun vx300s_mujoco_envs vx300s_mujoco_pnp_goal_validate.py
 Pass --attach to instead connect to a stack started with the package launch file.
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ import argparse
 import sys
 
 import rospy
-import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
+import uniros as gym  # subprocess-isolated env proxy that wraps gym.Env (see UniROS docs)
 
 # Trigger env registration.
 from vx300s_mujoco_envs.task_envs.pnp import vx300s_mujoco_pnp_goal  # noqa: F401
@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--attach", action="store_true",
                    help="Attach to a simulation already started with the package launch file.")
     p.add_argument("--no-realtime", action="store_true",
-                   help="Use the paused MDP loop instead of the real-time (paper section 7) loop.")
+                   help="Use the paused MDP loop instead of the real-time loop.")
     p.add_argument("--mujoco-gui", action="store_true",
                    help="Show the MuJoCo viewer (only when self-launching, i.e. without --attach).")
     p.add_argument("--eval-seed", type=int, default=1000)

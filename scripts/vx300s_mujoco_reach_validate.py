@@ -15,7 +15,7 @@ import argparse
 import sys
 
 import rospy
-import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
+import uniros as gym  # subprocess-isolated env proxy that wraps gym.Env (see UniROS docs)
 
 # Trigger env registration.
 from vx300s_mujoco_envs.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
@@ -44,14 +44,14 @@ def parse_args() -> argparse.Namespace:
                         "instead of letting the env launch its own MuJoCo server + roscore. "
                         "By default the env self-launches everything (one-command workflow).")
     p.add_argument("--no-realtime", action="store_true",
-                   help="Use the paused MDP loop instead of the real-time (paper section 7) loop.")
+                   help="Use the paused MDP loop instead of the real-time loop.")
     p.add_argument("--mujoco-gui", action="store_true",
                    help="Show the MuJoCo viewer (only when self-launching, i.e. without --attach).")
     p.add_argument("--eval-seed", type=int, default=1000,
                    help="RNG seed for the evaluation env (held-out goal stream).")
     p.add_argument("--max-episode-steps", type=int, default=100)
     p.add_argument("--episodes", type=int, default=20)
-    p.add_argument("--model-tag", default="trained_model")
+    p.add_argument("--model-tag", default="trained_model_reach")
     p.add_argument("--reward-type", default="Dense")
     return p.parse_args()
 

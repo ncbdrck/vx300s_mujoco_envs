@@ -245,7 +245,7 @@ class VX300SMujocoPnpEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
                 self.loop_counter = 0
                 self.action_counter = 0
 
-            # Real-time mode: drive the env loop with a rospy.Timer (paper section 7). Normal mode
+            # Real-time mode: drive the env loop with a rospy.Timer. Normal mode
             # reuses the same obs_r/reward_r cache but computes synchronously in _set_action,
             # so the timer is not registered.
             if self.realtime_mode:
@@ -379,7 +379,7 @@ class VX300SMujocoPnpEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
 
     def environment_loop(self, event):
         """
-        Real-time RL loop (paper section 7). Periodically refreshes obs/reward/done and re-applies
+        Real-time RL loop. Periodically refreshes obs/reward/done and re-applies
         the latest action (action repeats) so the agent never waits on sensor/actuator processing.
         """
         if self.init_done:
@@ -691,6 +691,6 @@ class VX300SMujocoPnpEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         return ros_port, mujoco_pid
 
     def _launch_roscore(self, port=None, set_new_master_vars=False):
-        ros_port, _ = ros_common.launch_roscore(port=int(port), set_new_master_vars=set_new_master_vars)
+        ros_port, _ = ros_common.launch_roscore(port=int(port) if port is not None else None, set_new_master_vars=set_new_master_vars)
         ros_common.change_ros_master(ros_port)
         return ros_port

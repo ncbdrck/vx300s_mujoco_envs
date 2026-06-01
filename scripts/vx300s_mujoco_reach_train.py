@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-import uniros as gym  # paper section 6.1: subprocess-isolated env proxy; drop-in for gym.Env
+import uniros as gym  # subprocess-isolated env proxy that wraps gym.Env (see UniROS docs)
 
 # Trigger env registration.
 from vx300s_mujoco_envs.task_envs.reach import vx300s_mujoco_reach  # noqa: F401
@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
                         "instead of letting the env launch its own MuJoCo server + roscore. "
                         "By default the env self-launches everything (one-command workflow).")
     p.add_argument("--no-realtime", action="store_true",
-                   help="Use the paused MDP loop instead of the real-time (paper section 7) loop.")
+                   help="Use the paused MDP loop instead of the real-time loop.")
     p.add_argument("--fast", action="store_true",
                    help="Deterministic-step mode: advance the sim with the MuJoCo step action "
                         "(no wall-clock sleep) so training runs as fast as the CPU allows. Implies "
@@ -122,8 +122,7 @@ def main() -> int:
     # core.train() reads the count from parm_dict["training_steps"] at train time.
     if args.steps is not None:
         model.parm_dict["training_steps"] = args.steps
-    model.train()
-    model.save_model()
+    model.train()  # BasicModel.train() already saves the trained model
     model.close_env()
     return 0
 

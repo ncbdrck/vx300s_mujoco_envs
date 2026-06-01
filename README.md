@@ -1,24 +1,32 @@
 # vx300s_mujoco_envs
 
-> ⚠️ **Under development.** Part of the experimental MuJoCo backend for MultiROS/UniROS
-> (`multiros` branch `feature/mujoco-backend`). APIs and structure may change; not yet merged
-> into the stable release.
+> ⚠️ **Available (experimental).** Part of the MuJoCo backend for MultiROS/UniROS, which lives on
+> `multiros` branch `feature/mujoco-backend` and is not yet merged into the stable release. It is
+> usable today, but APIs and structure may still change.
 
 ViperX-300 S MuJoCo environments (`mujoco_ros_pkgs` backend), used to validate the MultiROS
-MuJoCo backend end-to-end. The package mirrors the existing Gazebo VX300S envs but builds each
-env entirely from the `multiros` MuJoCo tooling (`mujoco_core` / `mujoco_models` / `mujoco_physics`
-/ `MujocoBaseEnv`), so creating a MuJoCo env follows the same workflow as a Gazebo one.
+MuJoCo backend end-to-end. The package follows the same three-layer structure and conventions as
+the Gazebo VX300S envs, but builds each env entirely from the `multiros` MuJoCo tooling
+(`mujoco_core` / `mujoco_models` / `mujoco_physics` / `MujocoBaseEnv`), so creating a MuJoCo env
+follows the same workflow as a Gazebo one.
 
-Currently implemented: **reach**, **push**. Planned: **pick-and-place**, and goal-conditioned
-(HER) variants.
+These are a focused, MuJoCo-native set with joint/proprioception-oriented observations — not a
+drop-in replacement for every Gazebo constructor option or observation mode (e.g. image
+observations and some Gazebo-only reward/action switches are out of scope).
+
+Currently implemented: **reach**, **push**, **pick-and-place**, each with a goal-conditioned
+(HER) variant.
 
 The arm is driven purely through the `ros_control` trajectory interface
 (`/vx300s/arm_controller/command`); **MoveIt is not used** — end-effector poses come from forward
 kinematics, joint state from `/vx300s/joint_states`.
 
-It reuses the robot description `viperx300s_description` (`vx300s.urdf.xacro`); the MuJoCo backend
-strips the gripper/finger transmissions automatically (via `controlled_joints`) since they have no
-joints in the MJCF. Task and training configs are self-contained in this package's `config/`.
+It reuses the robot description `viperx300s_description` (`vx300s.urdf.xacro`). The MJCF has the two
+finger joints but not the abstract Interbotix `gripper` mimic joint, so the MuJoCo backend filters
+the URDF transmissions (via `controlled_joints`) down to the joints it actually drives: reach and
+push keep only the six arm joints and leave the MJCF fingers passive, while pick-and-place also
+keeps the finger joints and drives them through a gripper controller. Task and training configs are
+self-contained in this package's `config/`.
 
 ## Tasks
 
@@ -26,11 +34,17 @@ joints in the MJCF. Task and training configs are self-contained in this package
 |------|--------|-------|---------|
 | Reach | `VX300SMujocoReacherSim-v0` | `vx300s_table_scene.xml` (arm + table) | `vx300s_mujoco_reach_{test,train,validate}.py` |
 | Push  | `VX300SMujocoPushSim-v0`    | `vx300s_push_scene.xml` (table + cube) | `vx300s_mujoco_push_{test,train,validate,poke}.py` |
+| Pick-and-place | `VX300SMujocoPnpSim-v0` | `vx300s_push_scene.xml` (table + cube) | `vx300s_mujoco_pnp_{test,train,validate,poke}.py` |
+
+Each task also has a goal-conditioned (HER) variant whose env id ends in `Goal` (e.g.
+`VX300SMujocoPushGoalSim-v0`), exposing a Dict observation and trained with SAC `use_her=True`.
 
 - **Reach** — move the end-effector to a sampled goal (RViz marker; no runtime objects).
 - **Push** — slide a cube resting on the table to a goal region. The cube is a free-joint body in
   the MJCF, repositioned each episode via `mujoco_set_body_state` and read back via
   `mujoco_get_body_state` (no per-episode spawn/delete).
+- **Pick-and-place** — grasp the cube and lift it to a 3D goal. Adds the gripper controller (the
+  finger joints, passive in reach/push) so the action includes a gripper command.
 
 ## Layout
 - `assets/vx300s_mjcf/` — the Trossen VX300S model from MuJoCo Menagerie, with its native MJCF
@@ -42,14 +56,14 @@ joints in the MJCF. Task and training configs are self-contained in this package
 - `config/vx300s_mujoco_control.yaml` — ros_control controllers (effort JointTrajectoryController).
 - `config/vx300s_mujoco_plugins.yaml` — the `MujocoPlugins` block that loads the ros_control bridge.
 - `config/initial_joint_states.yaml` — home configuration applied on load/reset.
-- `config/vx300s_reach_task_config.yaml`, `config/vx300s_push_task_config.yaml` — task params
-  (reward, workspace, goal sampling; push adds cube spawn / goal / observation regions).
-- `config/vx300s_reacher_sac.yaml`, `vx300s_reacher_td3.yaml`, `vx300s_pusher_sac.yaml` — SB3
-  training hyper-parameters.
-- `launch/vx300s_mujoco_reach.launch`, `vx300s_mujoco_push.launch` — bring up the URDF, the
-  mujoco_ros server (with the right scene) and the controllers.
+- `config/vx300s_{reach,push,pnp}_task_config.yaml` — task params (reward, workspace, goal
+  sampling; push/pnp add cube spawn / goal / observation regions).
+- `config/vx300s_{reacher,pusher,pnp}_sac.yaml` (+ `vx300s_reacher_td3.yaml`) and the
+  `*_goal_sac.yaml` HER variants — SB3 training hyper-parameters.
+- `launch/vx300s_mujoco_{reach,push,pnp}.launch` — bring up the URDF, the mujoco_ros server
+  (with the right scene) and the controllers (pnp also spawns the gripper controller).
 - `src/vx300s_mujoco_envs/robot_envs/` — the shared VX300S robot env.
-- `src/vx300s_mujoco_envs/task_envs/reach/`, `task_envs/push/` — the task envs.
+- `src/vx300s_mujoco_envs/task_envs/{reach,push,pnp}/` — the task envs (standard + goal variants).
 
 ## Build
 ```bash
@@ -67,10 +81,13 @@ everything:
 ```bash
 rosrun vx300s_mujoco_envs vx300s_mujoco_reach_test.py   # reach
 rosrun vx300s_mujoco_envs vx300s_mujoco_push_test.py    # push
+rosrun vx300s_mujoco_envs vx300s_mujoco_pnp_test.py     # pick-and-place
 ```
 Equivalently, in Python:
 ```python
 import uniros as gym
+# Importing the task module registers its env id with gymnasium.
+from vx300s_mujoco_envs.task_envs.push import vx300s_mujoco_push  # noqa: F401
 env = gym.make("VX300SMujocoPushSim-v0")   # launch_mujoco / new_roscore / load_robot default True
 obs, info = env.reset(seed=0)
 for _ in range(50):
@@ -114,7 +131,7 @@ Common training flags: `--no-realtime` (paused MDP loop), `--fast` (deterministi
 `--fast-steps N`), `--steps N` (override the config step count), `--attach`, `--mujoco-gui`.
 
 Training regimes:
-- **real-time** (default) — UniROS paper §7 loop; physics never pauses (sim→real fidelity).
+- **real-time** (default) — physics never pauses; a background timer refreshes obs while `step()` reads the latest cache (sim→real fidelity).
 - **`--no-realtime`** — paused MDP loop; every sample is the post-action world state.
 - **`--fast`** — deterministic step (no wall-clock sleep); runs as fast as the CPU allows.
 

@@ -17,9 +17,9 @@
   <arg name="use_sim_time" default="true" />
 
   <!-- Robot description for the vx300s arm (namespaced). The manufacturer xacro is reused as-is; -->
-  <!-- the multiros helper strips the gripper/finger transmissions (absent from the MJCF) so the -->
-  <!-- mujoco_ros_control plugin only claims the 6 arm joints. Same behaviour as the self-launch -->
-  <!-- path (which passes controlled_joints to the backend). -->
+  <!-- the multiros helper keeps only the 6 arm joints (the abstract gripper joint has no MJCF -->
+  <!-- counterpart; push leaves the MJCF finger joints passive) so mujoco_ros_control claims just -->
+  <!-- the arm. Same behaviour as the self-launch path (which passes controlled_joints). -->
   <group ns="vx300s">
     <param name="robot_description"
            command="$(find multiros)/scripts/mujoco_filtered_description.py $(find viperx300s_description)/urdf/vx300s.urdf.xacro --keep waist shoulder elbow forearm_roll wrist_angle wrist_rotate" />
