@@ -305,9 +305,44 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
             self.current_joint_velocities = list(joint_state.velocity)
             self.current_joint_efforts = list(joint_state.effort)
 
-    def move_arm_joints(self, q_positions: np.ndarray, time_from_start: float = 0.5) -> bool:
+    def _wait_for_joint_convergence(self, joint_names, target_positions,
+                                    tolerance: float = 0.01,
+                                    timeout: float = 2.0,
+                                    poll: float = 0.02) -> bool:
+        """
+        Block until every joint in ``joint_names`` is within ``tolerance`` of the matching entry
+        in ``target_positions``, or until ``timeout`` seconds. Returns True on convergence, False
+        on timeout — so the caller can detect a stalled controller and not silently treat
+        publish-and-return as "command applied". A default tolerance of 0.01 (rad for arm joints,
+        m for prismatic fingers) is loose enough not to trip on the trajectory controller's last
+        few percent settling but tight enough to confirm the gross motion happened.
+        """
+        deadline = rospy.get_time() + float(timeout)
+        targets = list(target_positions)
+        while rospy.get_time() < deadline and not rospy.is_shutdown():
+            if self.joint_state_names and self.joint_pos_all is not None:
+                name_to_pos = dict(zip(self.joint_state_names, self.joint_pos_all))
+                try:
+                    errs = [abs(name_to_pos[n] - t) for n, t in zip(joint_names, targets)]
+                except KeyError:
+                    rospy.sleep(poll)
+                    continue
+                if errs and max(errs) <= tolerance:
+                    return True
+            rospy.sleep(poll)
+        return False
+
+    def move_arm_joints(self, q_positions: np.ndarray, time_from_start: float = 0.5,
+                        await_convergence: bool = False,
+                        convergence_tolerance: float = 0.01) -> bool:
         """
         Command the arm joints with a single-point joint trajectory.
+
+        With ``await_convergence=True`` the call blocks until the arm joints reach
+        ``q_positions`` within ``convergence_tolerance`` rad, or returns False after roughly
+        twice ``time_from_start``. Default is False (fire-and-forget) so the per-tick action
+        path is unaffected; reset paths pass True so the env doesn't sample obs from a
+        mid-motion arm.
         """
         trajectory = JointTrajectory()
         trajectory.joint_names = self.arm_joint_names
@@ -318,11 +353,24 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
         trajectory.points[0].time_from_start = rospy.Duration(time_from_start)
 
         self.arm_controller_pub.publish(trajectory)
-        return True
+        if not await_convergence:
+            return True
+        return self._wait_for_joint_convergence(
+            self.arm_joint_names, q_positions,
+            tolerance=convergence_tolerance,
+            timeout=max(2.0 * time_from_start, 1.0),
+        )
 
-    def move_gripper_joints(self, q_positions: np.ndarray, time_from_start: float = 0.5) -> bool:
+    def move_gripper_joints(self, q_positions: np.ndarray, time_from_start: float = 0.5,
+                            await_convergence: bool = False,
+                            convergence_tolerance: float = 0.005) -> bool:
         """
         Command the gripper joints with a single-point joint trajectory.
+
+        With ``await_convergence=True`` the call blocks until the gripper joints reach
+        ``q_positions`` within ``convergence_tolerance`` m, or returns False after roughly
+        twice ``time_from_start``. Default is False; reset and explicit open/close paths
+        pass True.
         """
         trajectory = JointTrajectory()
         trajectory.joint_names = self.gripper_joint_names
@@ -333,7 +381,13 @@ class VX300SMujocoRobotGoalEnv(MujocoGoalEnv.MujocoGoalEnv):
         trajectory.points[0].time_from_start = rospy.Duration(time_from_start)
 
         self.gripper_controller_pub.publish(trajectory)
-        return True
+        if not await_convergence:
+            return True
+        return self._wait_for_joint_convergence(
+            self.gripper_joint_names, q_positions,
+            tolerance=convergence_tolerance,
+            timeout=max(2.0 * time_from_start, 1.0),
+        )
 
     def get_ee_pose(self):
         """

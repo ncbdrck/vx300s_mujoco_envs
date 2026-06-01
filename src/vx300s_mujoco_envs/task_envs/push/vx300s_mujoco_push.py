@@ -264,7 +264,8 @@ class VX300SMujocoPushEnv(vx300s_mujoco_robot.VX300SMujocoRobotEnv):
         self.current_action = None
 
         # move the robot to the home pose
-        self.movement_result = self.move_arm_joints(self.init_pos, time_from_start=self.action_speed)
+        self.movement_result = self.move_arm_joints(self.init_pos, time_from_start=self.action_speed,
+                                                    await_convergence=True)
         if not self.movement_result and self.log_internal_state:
             rospy.logwarn("Homing failed!")
 

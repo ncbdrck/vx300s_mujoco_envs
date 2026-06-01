@@ -237,7 +237,8 @@ class VX300SMujocoPnpGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalEnv):
         self.init_done = False
         self.current_action = None
 
-        self.movement_result = self.move_arm_joints(self.init_pos, time_from_start=self.action_speed)
+        self.movement_result = self.move_arm_joints(self.init_pos, time_from_start=self.action_speed,
+                                                    await_convergence=True)
         self.gripper_cmd = self.gripper_max
         self._set_gripper(self.gripper_cmd)
         if not self.movement_result and self.log_internal_state:
@@ -350,7 +351,8 @@ class VX300SMujocoPnpGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalEnv):
         """
         g = float(np.clip(gripper_value, self.gripper_min, self.gripper_max))
         self.gripper_cmd = g
-        self.move_gripper_joints(np.array([g, -g], dtype=np.float32), time_from_start=self.action_speed)
+        self.move_gripper_joints(np.array([g, -g], dtype=np.float32), time_from_start=self.action_speed,
+                                 await_convergence=True)
 
     def execute_action(self, action):
         action = np.asarray(action, dtype=np.float32)
