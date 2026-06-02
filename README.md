@@ -1,7 +1,7 @@
 # vx300s_mujoco_envs
 
-> ⚠️ **Available (experimental).** Part of the MuJoCo backend for MultiROS/UniROS, which lives on
-> `multiros` branch `feature/mujoco-backend` and is not yet merged into the stable release. It is
+> ⚠️ **Available (experimental).** Part of the MuJoCo backend for MultiROS/UniROS, which is
+> not yet in a stable release (see the UniROS MuJoCo backend guide for install steps). It is
 > usable today, but APIs and structure may still change.
 
 ViperX-300 S MuJoCo environments (`mujoco_ros_pkgs` backend), used to validate the MultiROS
