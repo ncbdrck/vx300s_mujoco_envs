@@ -58,15 +58,7 @@
     not_within_goal_space_reward: -2.0
 
     # the workspace of the robot (for the observation space and action validity).
-    # z floor is the EE (ee_gripper_link) FK floor: low enough to make contact with a
-    # cube whose center sits at z=0.02 (table top at z=0 + cube half-edge 0.02), kept
-    # above the per-link table-safety floor (table_z + safety_z_margin = 0.010) so the
-    # safety pre-check still gates the link below.
+    # z floor is the EE (ee_gripper_link) FK floor: low enough to reach a cube on the
+    # table top (z=0), kept above the per-link table-safety floor in the robot env.
     workspace_max: { x: 0.85, y: 0.85, z: 0.85 }
-    workspace_min: { x: 0.1, y: -0.85, z: 0.01 }
-
-    # Per-link safety floor for the FK pre-check in the robot env. Without these the
-    # robot env falls back to the same defaults; set them explicitly so the task-config
-    # is self-contained.
-    table_z: -0.005
-    safety_z_margin: 0.015
+    workspace_min: { x: 0.1, y: -0.85, z: 0.04 }
