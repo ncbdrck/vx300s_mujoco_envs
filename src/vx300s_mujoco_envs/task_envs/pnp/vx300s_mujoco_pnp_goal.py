@@ -505,6 +505,6 @@ class VX300SMujocoPnpGoalEnv(vx300s_mujoco_robot_goal.VX300SMujocoRobotGoalEnv):
         return ros_port, mujoco_pid
 
     def _launch_roscore(self, port=None, set_new_master_vars=False):
-        ros_port, _ = ros_common.launch_roscore(port=int(port) if port is not None else None, set_new_master_vars=set_new_master_vars)
+        ros_port = ros_common.launch_roscore_mujoco(port=int(port) if port is not None else None, set_new_master_var=set_new_master_vars)
         ros_common.change_ros_master(ros_port)
         return ros_port
